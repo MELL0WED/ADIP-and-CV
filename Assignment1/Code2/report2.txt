@@ -1,0 +1,17 @@
+Here, we have to read an image and implement saturation and desaturation operation on the provided color image. Here, we need to assume any plausible coordinates of vertices of the gamut triangle in the CIE chromaticity chart. Then, we save the maximally saturated image, desaturated image and saturated-desaturated image. We also saved the chromaticity points of each images including the original as well as manipulated images.
+The algorithm works as such:-
+
+1. The algorithm converts the color space of the input image from BGR to HSV(Hue, Saturation, Value) using the 
+BGR_HSV_CONVERSION function.
+
+2. The algorithm then manipulates the saturation of each pixel in the Image and creates three versions of the Image,i.e,
+	(a) A maximally saturated image where the saturation of each pixel is set to 1.0.
+	(b) A desaturated image where the saturation of each pixel is set to 0.0.
+	(c) A saturated-desaturated version of the image
+3. After the algorithm completes the manipulation of saturation, it then converts the HSV image back to BGR using the HSV_GBGR_CONVERSION function.
+
+4. The algorithm then calculates the chromaticity coordinates of the original as well as the maximally saturated, desaturated and saturated-desaturated version of the original image using the Chromaticity_calculation function. It normalizes the RGB values of the image and returns red and green values, that serves as chomaticity coordinate for the above images.
+
+5. The algorithm saves and diplays the original image, maximally saturated, desaturated and saturated-desaturated images using Matplotlib.
+
+6. For the output, the original as well as the manipulated images are displayed. It also displays the chromaticity plot of the distribution of colors in the original as well as the manipulated images.
