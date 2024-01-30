@@ -55,72 +55,50 @@ def main():
     img = cv2.imread('flower.jpg')
     h, w, _ = img.shape
     hsv_img = np.zeros((h, w, 3))
-    rgb_img = np.zeros((h, w, 3), dtype=np.uint8)
+    rgb_img_saturated = np.zeros((h, w, 3), dtype=np.uint8)
+    rgb_img_desaturated = np.zeros((h, w, 3), dtype=np.uint8)
 
     for i in range(h):
         for j in range(w):
             b, g, r = img[i, j]
             h, s, v = BGR_HSV_CONVERSION(b, g, r)
-            s = 1.0
-            b, g, r = HSV_BGR_CONVERSION(h, s, v)
-            hsv_img[i, j] = h, s, v
-            rgb_img[i, j] = b, g, r
+            
+            # Saturate the image
+            s_saturated = 1.0
+            b_saturated, g_saturated, r_saturated = HSV_BGR_CONVERSION(h, s_saturated, v)
+            hsv_img[i, j] = h, s_saturated, v
+            rgb_img_saturated[i, j] = b_saturated, g_saturated, r_saturated
 
-    cv2.imwrite('saturated_flower.jpg', rgb_img)
+            # Desaturate the image
+            s_desaturated = 0.0
+            b_desaturated, g_desaturated, r_desaturated = HSV_BGR_CONVERSION(h, s_desaturated, v)
+            rgb_img_desaturated[i, j] = b_desaturated, g_desaturated, r_desaturated
 
-    img = cv2.imread('flower.jpg')
-    h, w, _ = img.shape
-    hsv_img = np.zeros((h, w, 3))
-    rgb_img = np.zeros((h, w, 3), dtype=np.uint8)
+    # Combine the saturated and desaturated images
+    alpha = 0.5  # Adjust the blending ratio as needed
+    combined_img = cv2.addWeighted(rgb_img_saturated, alpha, rgb_img_desaturated, 1 - alpha, 0)
 
-    for i in range(h):
-        for j in range(w):
-            b, g, r = img[i, j]
-            h, s, v = BGR_HSV_CONVERSION(b, g, r)
-            s = 0.0
-            b, g, r = HSV_BGR_CONVERSION(h, s, v)
-            hsv_img[i, j] = h, s, v
-            rgb_img[i, j] = b, g, r
+    # Save the saturated and desaturated images
+    cv2.imwrite('saturated_flower.jpg', rgb_img_saturated)
+    cv2.imwrite('flower_desaturated.jpg', rgb_img_desaturated)
 
-    cv2.imwrite('flower_desaturated.jpg', cv2.cvtColor(rgb_img, cv2.COLOR_RGB2BGR))
+    # Save the combined image
+    cv2.imwrite('flower_Saturated_desaturated.jpg', combined_img)
 
-    img = cv2.imread('flower.jpg')
-    h, w, _ = img.shape
-    hsv_img = np.zeros((h, w, 3))
-    rgb_img = np.zeros((h, w, 3), dtype=np.uint8)
-
-    for i in range(h):
-        for j in range(w):
-            b, g, r = img[i, j]
-            h, s, v = BGR_HSV_CONVERSION(b, g, r)
-            s = 1.0
-            b, g, r = HSV_BGR_CONVERSION(h, s, v)
-            hsv_img[i, j] = h, s, v
-            rgb_img[i, j] = b, g, r
-            b, g, r = img[i, j]
-            h, s, v = BGR_HSV_CONVERSION(b, g, r)
-            s = 0.0
-            b, g, r = HSV_BGR_CONVERSION(h, s, v)
-            hsv_img[i, j] = h, s, v
-            rgb_img[i, j] = b, g, r
-
-    cv2.imwrite('flower_sat_desat.jpg', cv2.cvtColor(rgb_img, cv2.COLOR_RGB2BGR))
-
-
-    # Display the original, saturated, and desaturated images in the same plot
+    # Display the original, saturated, desaturated, and combined images in the same plot
     fig, axs = plt.subplots(1, 4, figsize=(24, 8))
 
     axs[0].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     axs[0].set_title('Original Image')
 
-    axs[1].imshow(cv2.cvtColor(cv2.imread('saturated_flower.jpg'), cv2.COLOR_BGR2RGB))
+    axs[1].imshow(cv2.cvtColor(rgb_img_saturated, cv2.COLOR_BGR2RGB))
     axs[1].set_title('Saturated Image')
 
-    axs[2].imshow(cv2.cvtColor(cv2.imread('flower_desaturated.jpg'), cv2.COLOR_BGR2RGB))
+    axs[2].imshow(cv2.cvtColor(rgb_img_desaturated, cv2.COLOR_BGR2RGB))
     axs[2].set_title('Desaturated Image')
 
-    axs[3].imshow(cv2.cvtColor(cv2.imread('flower_sat_desat.jpg'), cv2.COLOR_BGR2RGB))
-    axs[3].set_title('SatDesat Image')
+    axs[3].imshow(cv2.cvtColor(combined_img, cv2.COLOR_BGR2RGB))
+    axs[3].set_title('Saturated Desaturated Image')
 
     for ax in axs:
         ax.set_xticks([])
@@ -141,7 +119,7 @@ def main():
     img_original = cv2.imread('flower.jpg')
     img_saturated = cv2.imread('saturated_flower.jpg')
     img_desaturated = cv2.imread('flower_desaturated.jpg')
-    img_satdesat = cv2.imread('flower_sat_desat.jpg')
+    img_satdesat = cv2.imread('flower_Saturated_desaturated.jpg')
 
     # Calculate chromaticity for each image
     x_original, y_original = Chromaticity_calculation(img_original)
@@ -186,7 +164,7 @@ def main():
 
     # Plot the chromaticity points for the satdesat image
     axs[3].scatter(x_satdesat, y_satdesat, alpha=0.1, s=1)
-    axs[3].set_title('Chromaticity Points of the Desaturated Image')
+    axs[3].set_title('Chromaticity Points of the Saturated-desaturated Image')
     axs[3].set_xlabel('x')
     axs[3].set_ylabel('y')
     axs[3].set_xlim([0, 1])
@@ -198,17 +176,6 @@ def main():
     plt.tight_layout()
     plt.show()
 
-    plt.figure(figsize=(8, 8))
-    plt.scatter(data['x'], data['y'], c=data['Wavelength (in nm)'], cmap='jet', alpha=0.5)
-    plt.title('Chromaticity Points of the Color Matching Functions')
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    plt.colorbar(label='Wavelength (in nm)')
-    plt.show()
-    
-    
 
 if __name__ == "__main__":
     main()
